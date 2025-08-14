@@ -16,45 +16,29 @@ public class QrDataParserImpl implements QrDataParserService {
 
     @Override
     public String parseQrData(MultipartFile file) throws Exception {
-        JSONArray jsonArray = new JSONArray();
+        JSONObject resultObject = new JSONObject();
         String text = qrCodeService.readQrCode(file);
 
         int index = 0;
         while (index < text.length()) {
-
             String tag = text.substring(index, index + 2);
-
             String lenStr = text.substring(index + 2, index + 4);
             int length = Integer.parseInt(lenStr);
-
             String value = text.substring(index + 4, index + 4 + length);
-
-//            System.out.println(tag + " " + lenStr + " " + value);
 
             if (tag.equals("00")) {
                 int subIndex = 0;
                 while (subIndex < value.length()) {
                     String subTag = value.substring(subIndex, subIndex + 2);
-
                     String subLenStr = value.substring(subIndex + 2, subIndex + 4);
                     int subLength = Integer.parseInt(subLenStr);
-
                     String subValue = value.substring(subIndex + 4, subIndex + 4 + subLength);
 
-                    JSONObject jsonObject = new JSONObject();
                     if (subTag.equals("01")) {
-                        jsonObject.put("sendingBank", subValue);
-
-                        jsonArray.put(jsonObject);
+                        resultObject.put("sendingBank", subValue);
+                    } else if (subTag.equals("02")) {
+                        resultObject.put("transRef", subValue);
                     }
-
-                    if (subTag.equals("02")) {
-                        jsonObject.put("transRef", subValue);
-
-                        jsonArray.put(jsonObject);
-                    }
-
-//                    System.out.println("    " + subTag + " " + subLength + " " + subValue);
 
                     subIndex += 4 + subLength;
                 }
@@ -62,6 +46,6 @@ public class QrDataParserImpl implements QrDataParserService {
 
             index += 4 + length;
         }
-        return String.valueOf(jsonArray);
+        return resultObject.toString();
     }
 }
